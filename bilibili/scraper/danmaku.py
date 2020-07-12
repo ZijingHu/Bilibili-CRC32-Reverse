@@ -12,7 +12,7 @@ COOKIES = None
 HEADERS = None
 
 def login():
-    uname = input('Username: ')
+    uname = getpass.getpass('Username: ')
     upsw = getpass.getpass('Password: ')
 
     driver = webdriver.Chrome()
