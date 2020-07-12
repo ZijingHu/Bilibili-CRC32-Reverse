@@ -1,3 +1,4 @@
+import os
 import binascii
 
 def crc32asii(v):
@@ -6,6 +7,10 @@ def crc32asii(v):
     return c.zfill(8)
 
 def gen_crctable():
+    if 'map' not in os.listdir():
+        os.mkdir('./map')
+    else:
+        raise SystemError('The folder "map" has already existed.')
     for i in range(0xffff):
         head = hex(i)[2:].zfill(4)
         with open(f'./map/{head}.txt', 'w', buffering=1) as f:
