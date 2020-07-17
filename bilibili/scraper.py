@@ -10,6 +10,9 @@ from selenium.webdriver.support import expected_conditions as EC
 
 COOKIES = None
 HEADERS = None
+false = False
+true = True
+null = None
 
 def login():
     uname = getpass.getpass('Username: ')
@@ -34,6 +37,9 @@ def login():
 
 def get(url):
     return requests.get(url, headers=HEADERS, cookies=COOKIES)
+    
+def get_cookies_n_headers():
+    return COOKIES, HEADERS
 
 def get_cid_via_bv(bv):
     url = f'https://api.bilibili.com/x/player/pagelist?bvid={bv}'
@@ -72,3 +78,40 @@ def get_danmaku(cid, date, check=True):
     page = get_danmaku_page(cid, date, check=True)
     danmaku = parse_danmaku_page(page)
     return danmaku
+
+def get_following(uid):
+    following = []
+    header = 'https://api.bilibili.com/x/relation/'
+    user_api = header + f'stat?vmid={uid}'
+    user_info = eval(requests.get(user_api).content.decode('utf-8'))
+    following_n = int(user_info['data']['following'])
+    if following_n == 0: 
+        return following
+    
+    page_n = min(5, following_n // 50 + 1)
+    for i in range(page_n):
+        following_api = header + f'followings?vmid={uid}&pn={i+1}&ps=50&jsonp=jsonp'
+        resp = requests.get(following_api, cookies=COOKIES, headers=HEADERS)
+        pn = eval(resp.content.decode('utf-8'))['data']['list']
+        uid_list = list(map(lambda x: x['mid'], pn))
+        following += uid_list
+    return following
+
+def get_pub(uid, field='typeid'):
+    # field: comment, typeid, play, pic, subtitle, description, length, 
+    #        copyright, title, review, author, mid, created, is_pay, 
+    #        video_review, aid, bvid, hide_click, is_union_video,
+    p = 1
+    v_list = []
+    pub_api = 'https://api.bilibili.com/x/space/arc/search?'
+    resp = requests.get(pub_api+f'mid={uid}&ps=100&pn={p}')
+    page = eval(resp.content.decode('utf-8'))
+    v_list += [i[field] for i in page['data']['list']['vlist']]
+    vn = sum([i['count'] for i in page['data']['list']['tlist'].values()])
+    pn = vn // 100 + 1
+    if p < pn:
+        p += 1
+        resp = requests.get(pub_api+f'mid={uid}&ps=100&pn={p}')
+        page = eval(resp.content.decode('utf-8'))
+        v_list += [i[field] for i in page['data']['list']['vlist']]
+    return v_list
