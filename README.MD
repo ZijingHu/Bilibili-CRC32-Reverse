@@ -31,7 +31,7 @@ find_uid(crc32-uid)
 -  **For scrapping danmaku / followings / publication types**
 
 ```
-from bilibili.scraper.danmaku import *
+from bilibili.scraper import *
 
 # login to get cookies
 login()
